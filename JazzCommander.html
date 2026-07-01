@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Jazz Commander</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    background:#101010;
+    color:white;
+
+    font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+    max-width:700px;
+    margin:auto;
+
+    padding:18px;
+
+}
+
+h1{
+
+    font-size:32px;
+    margin-bottom:4px;
+
+}
+
+.subtitle{
+
+    color:#999;
+    margin-bottom:20px;
+
+}
+
+.card{
+
+    background:#1d1d1d;
+
+    border-radius:18px;
+
+    padding:18px;
+
+    margin-bottom:18px;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.25);
+
+}
+
+.sectionTitle{
+
+    font-size:13px;
+
+    letter-spacing:2px;
+
+    color:#888;
+
+    margin-bottom:10px;
+
+    text-transform:uppercase;
+
+}
+
+.big{
+
+    font-size:30px;
+
+    font-weight:bold;
+
+}
+
+.green{
+
+    color:#47d764;
+
+}
+
+.orange{
+
+    color:#ffb340;
+
+}
+
+button{
+
+    width:100%;
+
+    background:#2b7cff;
+
+    color:white;
+
+    border:none;
+
+    border-radius:14px;
+
+    padding:15px;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+}
+
+button:hover{
+
+    background:#4a90ff;
+
+}
+
+.daySelector{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.dayButton{
+
+    width:52px;
+
+    font-size:22px;
+
+    border-radius:12px;
+
+}
+
+.currentDay{
+
+    font-size:22px;
+
+    font-weight:bold;
+
+}
+
+.scheduleItem{
+
+    padding:12px 0;
+
+    border-bottom:1px solid #333;
+
+}
+
+.scheduleTime{
+
+    color:#58a6ff;
+
+    font-weight:bold;
+
+}
+
+.favorite{
+
+    color:#ffd34d;
+
+}
+
+#clock{
+
+    font-size:18px;
+
+    color:#bbb;
+
+}
+
+#advice{
+
+    font-size:18px;
+
+    line-height:1.5em;
+
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🎷 Jazz Commander</h1>
+
+<div class="subtitle">
+
+North Sea Jazz 2026
+
+</div>
+
+<div class="card">
+
+<div class="sectionTitle">
+
+Festivaldag
+
+</div>
+
+<div class="daySelector">
+
+<button class="dayButton" onclick="previousDay()">◀</button>
+
+<div class="currentDay" id="currentDay">
+
+Fredag
+
+</div>
+
+<button class="dayButton" onclick="nextDay()">▶</button>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="sectionTitle">
+
+Status
+
+</div>
+
+<div class="big green">
+
+🟢 LUGNT
+
+</div>
+
+<div id="clock">
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="sectionTitle">
+
+Mission
+
+</div>
+
+<div class="big">
+
+Marcus Miller
+
+</div>
+
+<div style="margin-top:8px;">
+
+★★★★★
+
+</div>
+
+<div style="margin-top:8px;color:#999;">
+
+20:00 • Nile
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="sectionTitle">
+
+Vad ska jag göra nu?
+
+</div>
+
+<div id="advice">
+
+Ta något att dricka.<br><br>
+
+Du behöver inte gå ännu.
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="sectionTitle">
+
+Dagens plan
+
+</div>
+
+<div id="schedule">
+
+</div>
+
+</div>
+
+<button onclick="showFavorites()">
+
+⭐ Visa bara favoriter
+
+</button>
+
+<script>
+
+const days=[
+
+"Fredag",
+"Lördag",
+"Söndag"
+
+];
+
+let current=0;
+
+const data={
+
+"Fredag":[
+
+{
+time:"18:15",
+artist:"Hiromi Sonicwonder",
+stars:5,
+favorite:true
+},
+
+{
+time:"20:00",
+artist:"Marcus Miller",
+stars:5,
+favorite:true
+},
+
+{
+time:"22:15",
+artist:"Snarky Puppy",
+stars:5,
+favorite:true
+}
+
+],
+
+"Lördag":[
+
+{
+time:"17:30",
+artist:"Robert Glasper",
+stars:5,
+favorite:true
+},
+
+{
+time:"20:00",
+artist:"Roy Hargrove's RH Factor",
+stars:5,
+favorite:true
+},
+
+{
+time:"22:30",
+artist:"Vincen García",
+stars:4,
+favorite:true
+}
+
+],
+
+"Söndag":[
+
+{
+time:"16:00",
+artist:"Joshua Redman",
+stars:4,
+favorite:true
+},
+
+{
+time:"18:00",
+artist:"Incognito",
+stars:5,
+favorite:true
+}
+
+];
+function renderSchedule(showOnlyFavorites=false){
+
+    const day=days[current];
+
+    currentDay.textContent=day;
+
+    const concerts=data[day];
+
+    let html="";
+
+    concerts.forEach(concert=>{
+
+        if(showOnlyFavorites && !concert.favorite){
+            return;
+        }
+
+        html+=`
+
+        <div class="scheduleItem">
+
+            <div class="scheduleTime">
+
+                ${concert.time}
+
+            </div>
+
+            <div>
+
+                ${concert.artist}
+
+            </div>
+
+            <div class="favorite">
+
+                ${"★".repeat(concert.stars)}
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+    schedule.innerHTML=html;
+
+}
+
+function previousDay(){
+
+    current--;
+
+    if(current<0){
+
+        current=days.length-1;
+
+    }
+
+    renderSchedule();
+
+}
+
+function nextDay(){
+
+    current++;
+
+    if(current>=days.length){
+
+        current=0;
+
+    }
+
+    renderSchedule();
+
+}
+
+function showFavorites(){
+
+    renderSchedule(true);
+
+}
+
+function updateClock(){
+
+    const now=new Date();
+
+    clock.textContent=
+
+        now.toLocaleDateString("sv-SE")+"   "+
+
+        now.toLocaleTimeString("sv-SE");
+
+}
+
+setInterval(updateClock,1000);
+
+updateClock();
+
+renderSchedule();
+
+</script>
+
+</body>
+</html>
